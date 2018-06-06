@@ -1,74 +1,74 @@
-Ŀ�ģ�
-ʹ��GitHub�й���Ŀ����
+目的：
+使用GitHub托管项目代码
 
-�������
-�ֿ⣨repository���������Ŀ���룬ÿ����Ŀ��Ӧһ���ֿ⣬�����Ŀ��Ӧ����ֿ�
-star���ղأ����ղ���Ŀ���������ղ���Ŀ������鿴�������Ŀstar�Ϳ����ղ�
-fork�����ƿ�¡��Ŀ������������Ŀ�����и��ƣ��Ƕ������ڵģ�fork from ������Դ��
-pull request���������󣩣��Դ�����и���
-��ע��watch�����յ�������Ŀ���µ�֪ͨ����
-issue������Ƭ��������bug��û�г��ʹ��룬����ʹ��
-GitHub��ҳ����ʾ�û���̬�Լ���ע�û��Ķ�̬����ʾ����Git�⣬���logo
-�ֿ���ҳ����Ŀ��Ϣ��
-������ҳ��������Ϣ
+基本概念：
+仓库（repository）：存放项目代码，每个项目对应一个仓库，多个项目对应多个仓库
+star（收藏）：收藏项目的人数，收藏项目，方便查看。点击项目star就可以收藏
+fork（复制克隆项目）：不错的项目，进行复制，是对立存在的（fork from 复制来源）
+pull request（发起请求）：对代码进行更新
+关注（watch）：收到关于项目更新的通知提醒
+issue（事务卡片）：发现bug，没有成型代码，讨论使用
+GitHub主页：显示用户动态以及关注用户的动态，显示所有Git库，点击logo
+仓库主页：项目信息，
+个人主页：个人信息
 
-�����ֿ�/��������Ŀ
-һ��Git���Ӧһ����Ŀ
-ͨ��Git����Git��
+创建仓库/创建新项目
+一个Git库对应一个项目
+通过Git管理Git库
 
 
-�ֿ����
-�½��ļ���create new file
-�༭�ļ�������ļ���/���б༭
-ɾ���ļ�������ļ���/����ɾ��
-�ϴ��ļ���upload files
-�����ļ���find file��T�����ٲ����ļ���
-���غͿ�¡�ļ���clone or download
+仓库管理
+新建文件：create new file
+编辑文件：点击文件名/进行编辑
+删除文件：点击文件名/进行删除
+上传文件：upload files
+搜索文件：find file（T：快速查找文件）
+下载和克隆文件：clone or download
 
-Git��װ
-���ص�ַ��https://git-scm.com/download/win
-�鿴�Ƿ�װ�ɹ����һ�����git����Ϣ�����ǰ�װ�ɹ�
+Git安装
+下载地址：https://git-scm.com/download/win
+查看是否安装成功：右击看见git的信息，就是安装成功
 
-git��������
-git��������
-��������working directory�������ӣ��༭���޸��ļ�
-�ݴ������ݴ��޸��ļ����ͳһ�ύ��git�ֿ���
-git�ֿ⣨git repository���������ļ����浽�ֿ�
+git工作流程
+git工作区域：
+工作区域（working directory）：添加，编辑，修改文件
+暂存区域：暂存修改文件最后统一提交到git仓库中
+git仓库（git repository）：最终文件保存到仓库
 
-���������ύ���ݴ�����
-git status���鿴�ļ�״������ʲô����
-git add �ļ��������������ύ���ݴ�����
-git commit -m ���ύ������(�ݴ������ύ��git�ֿ⣩
+工作区域提交到暂存区域：
+git status：查看文件状况（在什么区域）
+git add 文件名（工作区域提交到暂存区域）
+git commit -m “提交描述”(暂存区域提交到git仓库）
 
-git��ʼ��
-������Ϣ���ã�
-�����û�����git config --global user.name "gethujiang"
-�����û������䣺git config --global user.email "1003973737@qq.com"
-�鿴���ã�git config --list
-��ʼ��git�ֿ⣺
-��1�������ļ��У�mkdir��
-��2�����ļ��ڳ�ʼ��git������git�ֿ⣩��git init��.git���洢���زֿ�������Ϣ��
-��ֿ������ļ���
-��1�������ļ���touch��vim��nano��
-��2�������ϴ����ݴ�����git add js.php��
-��3�������ϴ���git�ֿ⣨git commit -m 'add js.php'��
-�޸Ĳֿ��ļ���
-��1���޸��ļ���vim��
-��2���ϴ��ݴ�����git add js.php��
-��3���ϴ���git�ֿ⣨git commit -m '�޸�js.php'��
-ɾ���ֿ��ļ���
-��1��ɾ������Ŀ¼�ļ���rm -rf �ļ�����
-��2����Git��ɾ���ļ���Git rm �ļ��� ��
-��3���ύ������Git commit -m "ɾ���ļ�"��
+git初始化
+基本信息设置：
+设置用户名：git config --global user.name "gethujiang"
+设置用户名邮箱：git config --global user.email "1003973737@qq.com"
+查看设置：git config --list
+初始化git仓库：
+（1）创建文件夹（mkdir）
+（2）在文件内初始化git（创建git仓库）：git init（.git：存储本地仓库所有信息）
+向仓库添加文件：
+（1）创建文件（touch，vim，nano）
+（2）进行上传到暂存区域（git add js.php）
+（3）进行上传到git仓库（git commit -m 'add js.php'）
+修改仓库文件：
+（1）修改文件（vim）
+（2）上传暂存区域（git add js.php）
+（3）上传到git仓库（git commit -m '修改js.php'）
+删除仓库文件：
+（1）删除工作目录文件（rm -rf 文件名）
+（2）从Git中删除文件（Git rm 文件名 ）
+（3）提交操作（Git commit -m "删除文件"）
 
-gitԶ�̹����ֿ�
-Ŀ�ģ����ݣ�����
-GitԶ�ֿ̲⣺Git�����������£�ͬ����
-���زֿ�ͬ��GitԶ�ֿ̲⣺
-1.���������ݴ�����
-2.�ݴ�����git�ֿ�
-3.����git�ֿ⵽gitԶ�ֿ̲⣨git push��
+git远程管理仓库
+目的：备份，共享
+Git远程仓库：Git服务器（更新，同步）
+本地仓库同步Git远程仓库：
+1.工作区域到暂存区域
+2.暂存区域到git仓库
+3.本地git仓库到git远程仓库（git push）错误（git push -）
 
-git��¡
-Ŀ�ģ���GitHub��Ŀ���Ƶ�����
-���룺git clone �ֿ��ַ��git clone https://github.com/gethujiang/study-of-kali.git��
+git克隆
+目的：将GitHub项目复制到本地
+代码：git clone 仓库地址（git clone https://github.com/gethujiang/study-of-kali.git）
